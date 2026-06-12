@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Failed to fetch user:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
-      delete axios.defaults.headers.common['Authorization'];
+      
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,6 @@ export const AuthProvider = ({ children }) => {
       
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setUser(user);
       return { success: true };
@@ -65,7 +64,6 @@ export const AuthProvider = ({ children }) => {
       
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setUser(user);
       return { success: true };
@@ -80,7 +78,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
