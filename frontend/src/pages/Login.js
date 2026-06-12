@@ -39,7 +39,7 @@ const Login = () => {
   };
 
   const handleOAuthLogin = (provider) => {
-    window.location.href = `http://localhost:5000/api/auth/${provider}`;
+    window.location.href = `https://talentbridge-ltm3.onrender.com/api/auth/${provider}`;
   };
 
   return (
