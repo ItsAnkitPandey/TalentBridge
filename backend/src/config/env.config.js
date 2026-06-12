@@ -184,8 +184,8 @@ function validateEnv() {
  * Centralized configuration with validated values
  */
 const config = {
-  env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT, 10) || 5000,
+  env: process.env.NODE_ENV ,
+  port: parseInt(process.env.PORT, 10),
   
   database: {
     host: process.env.DB_HOST,
@@ -234,7 +234,7 @@ const config = {
     port: parseInt(process.env.EMAIL_PORT, 10) || 587,
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
-    from: process.env.EMAIL_FROM || 'noreply@example.com'
+    from: process.env.EMAIL_FROM 
   },
   
   cors: {
@@ -253,7 +253,7 @@ const config = {
   },
   
   session: {
-    secret: process.env.SESSION_SECRET || 'default-session-secret-change-in-production'
+    secret: process.env.SESSION_SECRET
   },
   
   logging: {
