@@ -16,7 +16,7 @@ export const getAllUsers = async (params = {}) => {
 
 // Delete user
 export const deleteUser = async (userId) => {
-  const response = await api.delete('/admin/users/${userId}');
+  const response = await api.delete(`/admin/users/${userId}`);
   return response.data;
 };
 
@@ -28,19 +28,19 @@ export const getAllJobs = async (params = {}) => {
 
 // Toggle job status
 export const toggleJobStatus = async (jobId) => {
-  const response = await api.put('/admin/jobs/${jobId}/toggle');
+  const response = await api.put(`/admin/jobs/${jobId}/toggle`);
   return response.data;
 };
 
 // Approve job
 export const approveJob = async (jobId) => {
-  const response = await api.put('/admin/jobs/${jobId}/approve');
+  const response = await api.put(`/admin/jobs/${jobId}/approve`);
   return response.data;
 };
 
 // Reject job
 export const rejectJob = async (jobId, reason) => {
-  const response = await api.put('/admin/jobs/${jobId}/reject', { reason });
+  const response = await api.put(`/admin/jobs/${jobId}/reject`, { reason });
   return response.data;
 };
 
@@ -52,7 +52,7 @@ export const getPendingJobsCount = async () => {
 
 // Delete job
 export const deleteJob = async (jobId) => {
-  const response = await api.delete('/admin/jobs/${jobId}');
+  const response = await api.delete(`/admin/jobs/${jobId}`);
   return response.data;
 };
 
