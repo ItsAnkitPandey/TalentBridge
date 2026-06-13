@@ -166,10 +166,19 @@ exports.login = async (req, res, next) => {
 exports.googleCallback = async (req, res) => {
   try {
     const user = req.user;
+    const isNewUser = user.isNewUser;
 
     // Update last login
     user.last_login = new Date();
     await user.save();
+
+    // Send welcome email for new users (non-blocking)
+    if (isNewUser) {
+      sendWelcomeEmail(user).catch(err => {
+        logger.error('Failed to send welcome email:', err);
+      });
+      logger.info(`New user registered via Google OAuth: ${user.email}`);
+    }
 
     // Generate tokens
     const token = generateToken(user.id);
@@ -189,10 +198,19 @@ exports.googleCallback = async (req, res) => {
 exports.linkedinCallback = async (req, res) => {
   try {
     const user = req.user;
+    const isNewUser = user.isNewUser;
 
     // Update last login
     user.last_login = new Date();
     await user.save();
+
+    // Send welcome email for new users (non-blocking)
+    if (isNewUser) {
+      sendWelcomeEmail(user).catch(err => {
+        logger.error('Failed to send welcome email:', err);
+      });
+      logger.info(`New user registered via LinkedIn OAuth: ${user.email}`);
+    }
 
     // Generate tokens
     const token = generateToken(user.id);
