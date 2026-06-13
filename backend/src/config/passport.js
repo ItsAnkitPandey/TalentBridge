@@ -49,6 +49,8 @@ module.exports = (passport) => {
               user.google_id = profile.id;
               await user.save();
             }
+            // Mark as existing user
+            user.isNewUser = false;
             return done(null, user);
           }
 
@@ -63,6 +65,8 @@ module.exports = (passport) => {
             auth_provider: 'google'
           });
 
+          // Mark as new user for welcome email
+          user.isNewUser = true;
           return done(null, user);
         } catch (error) {
           return done(error, false);
@@ -93,6 +97,8 @@ module.exports = (passport) => {
               user.linkedin_id = profile.id;
               await user.save();
             }
+            // Mark as existing user
+            user.isNewUser = false;
             return done(null, user);
           }
 
@@ -107,6 +113,8 @@ module.exports = (passport) => {
             auth_provider: 'linkedin'
           });
 
+          // Mark as new user for welcome email
+          user.isNewUser = true;
           return done(null, user);
         } catch (error) {
           return done(error, false);
