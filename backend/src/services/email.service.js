@@ -19,7 +19,7 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     host: config.email.host,
     port: config.email.port,
-    secure: config.email.port === 465, // true for 465, false for other ports
+    secure: config.email.port === 587, 
     auth: {
       user: config.email.user,
       pass: config.email.password,
@@ -54,7 +54,7 @@ const sendEmail = async (options) => {
 
   try {
     const mailOptions = {
-      from: `${options.fromName || 'TalentBridge'} <${config.email.from}>`,
+      from: `'TalentBridge' <${config.email.from}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -116,7 +116,7 @@ const sendWelcomeEmail = async (user) => {
 
           <p>If you have any questions, feel free to reach out to our support team.</p>
           
-          <p>Best regards,<br>The Employee Referral Team</p>
+          <p>Best regards,<br>Talentt Bridge</p>
         </div>
         <div class="footer">
           <p>&copy; ${new Date().getFullYear()} TalentBridge. All rights reserved.</p>
