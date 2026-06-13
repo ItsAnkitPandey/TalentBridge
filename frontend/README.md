@@ -1,4 +1,4 @@
-# Employee Referral System - Frontend
+# TalentBridge - Frontend
 
 React frontend for the Employee Referral System with Material-UI.
 
