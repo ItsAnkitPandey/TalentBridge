@@ -90,6 +90,7 @@ const AdminDashboard = () => {
     recipients: 'all',
     subject: '',
     message: '',
+    loading: false,
   });
 
   const fetchDashboardData = useCallback(async (isInitialLoad = false) => {
@@ -316,15 +317,18 @@ const AdminDashboard = () => {
         return;
       }
 
+      setEmailDialog({ ...emailDialog, loading: true });
+
       await adminAPI.sendBulkEmail({
         recipients: emailDialog.recipients,
         subject: emailDialog.subject,
         message: emailDialog.message,
       });
       toast.success('Emails sent successfully');
-      setEmailDialog({ open: false, recipients: 'all', subject: '', message: '' });
+      setEmailDialog({ open: false, recipients: 'all', subject: '', message: '', loading: false });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send emails');
+      setEmailDialog({ ...emailDialog, loading: false });
     }
   };
 
@@ -415,7 +419,8 @@ const AdminDashboard = () => {
               open: true, 
               recipients: 'all',
               subject: '',
-              message: ''
+              message: '',
+              loading: false
             })}
             sx={{ borderRadius: 2, px: 3 }}
           >
@@ -1062,7 +1067,7 @@ const AdminDashboard = () => {
       {/* Bulk Email Dialog */}
       <Dialog
         open={emailDialog.open}
-        onClose={() => setEmailDialog({ open: false, recipients: 'all', subject: '', message: '' })}
+        onClose={() => !emailDialog.loading && setEmailDialog({ open: false, recipients: 'all', subject: '', message: '', loading: false })}
         maxWidth="sm"
         fullWidth
       >
@@ -1101,15 +1106,19 @@ const AdminDashboard = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEmailDialog({ open: false, recipients: 'all', subject: '', message: '' })}>
+          <Button 
+            onClick={() => setEmailDialog({ open: false, recipients: 'all', subject: '', message: '', loading: false })}
+            disabled={emailDialog.loading}
+          >
             Cancel
           </Button>
           <Button 
             variant="contained" 
             onClick={handleSendBulkEmail}
-            disabled={!emailDialog.subject || !emailDialog.message}
+            disabled={!emailDialog.subject || !emailDialog.message || emailDialog.loading}
+            startIcon={emailDialog.loading ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            Send Email
+            {emailDialog.loading ? 'Sending...' : 'Send Email'}
           </Button>
         </DialogActions>
       </Dialog>
