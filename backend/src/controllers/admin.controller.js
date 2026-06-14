@@ -1,7 +1,7 @@
 const { User, Job, Referral, Organization } = require('../models');
 const { Op } = require('sequelize');
 const { logger } = require('../middleware/errorHandler.middleware');
-const { sendBulkEmail, sendJobApprovedEmail, sendJobRejectedEmail } = require('../services/email.service');
+const { sendBulkEmail, sendJobApprovedEmail, sendJobRejectedEmail } = require('../services/email');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
