@@ -1,6 +1,6 @@
 const { Referral, User, Job, Organization } = require('../models');
 const logger = require('../utils/logger');
-const { sendReferralRequestEmail, sendReferralAcceptedEmail } = require('../services/email.service');
+const { sendReferralRequestEmail, sendReferralAcceptedEmail } = require('../services/email);
 
 // @desc    Create referral request
 // @route   POST /api/referrals/request
