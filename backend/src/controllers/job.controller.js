@@ -1,7 +1,7 @@
 const { Job, Organization, User } = require('../models');
 const { Op } = require('sequelize');
 const logger = require('../utils/logger');
-const { sendJobApprovalNotification } = require('../services/email.service');
+const { sendJobApprovalNotification } = require('../services/email');
 
 // @desc    Get all jobs with filters
 // @route   GET /api/jobs
