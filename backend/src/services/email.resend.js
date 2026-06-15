@@ -1,52 +1,67 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const config = require('../config/env.config');
 const { logger } = require('../middleware/errorHandler.middleware');
 
 /**
- * Resend Email Service
- * Modern HTTP-based email API that works on all serverless platforms
- * Free tier: 3,000 emails/month, 100/day
+ * Brevo (Sendinblue) Email Service
+ * 300 emails/day FREE - Works on all platforms
+ * Much better than Resend - supports sending from any email
  */
 
-let resend = null;
+let transporter = null;
 
-// Initialize Resend
-if (process.env.RESEND_API_KEY) {
-  resend = new Resend(process.env.RESEND_API_KEY);
-  logger.info('✓ Resend email service initialized');
+// Initialize Brevo SMTP
+if (process.env.BREVO_SMTP_KEY) {
+  transporter = nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.BREVO_SMTP_USER,
+      pass: process.env.BREVO_SMTP_KEY,
+    },
+  });
+
+  logger.info('✓ Brevo email service initialized');
 } else {
-  logger.warn('⚠️  Resend not configured. Set RESEND_API_KEY environment variable.');
+  logger.warn('⚠️  Brevo not configured. Set BREVO_SMTP_KEY environment variable.');
 }
 
 /**
- * Send email via Resend
+ * Send email via Brevo
  * @param {Object} options - Email options
  * @returns {Promise}
  */
 const sendEmail = async (options) => {
-  if (!resend) {
-    logger.warn('Email not sent - Resend not configured');
+  if (!transporter) {
+    logger.warn('Email not sent - Brevo not configured');
     return { success: false, message: 'Email service not configured' };
   }
 
   try {
-    const result = await resend.emails.send({
-      from: `${options.fromName || 'TalentBridge'} <${process.env.RESEND_FROM_EMAIL || config.email.from}>`,
+    const mailOptions = {
+      from: `${options.fromName || 'TalentBridge'} <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: options.to,
       subject: options.subject,
-      html: options.html,
       text: options.text,
-    });
+      html: options.html,
+    };
 
-    logger.info('✓ Email sent via Resend:', {
-      id: result.data?.id,
+    const info = await transporter.sendMail(mailOptions);
+    
+    logger.info('✓ Email sent via Brevo:', {
+      messageId: info.messageId,
       to: options.to,
       subject: options.subject
     });
 
-    return { success: true, messageId: result.data?.id };
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    logger.error('✗ Failed to send email via Resend:', error);
+    logger.error('✗ Failed to send email via Brevo:', {
+      error: error.message,
+      to: options.to,
+      details: error.response || error
+    });
     throw error;
   }
 };
@@ -333,13 +348,13 @@ const sendPasswordResetEmail = async (user, resetToken) => {
  * Send bulk email (non-blocking)
  */
 const sendBulkEmail = async (recipients, subject, message) => {
-  if (!resend) {
-    logger.warn('Bulk email not sent - Resend not configured');
+  if (!transporter) {
+    logger.warn('Bulk email not sent - Brevo not configured');
     return { success: false, message: 'Email service not configured' };
   }
 
   const totalRecipients = recipients.length;
-  logger.info(`📧 Starting Resend bulk email to ${totalRecipients} recipients`);
+  logger.info(`📧 Starting Brevo bulk email to ${totalRecipients} recipients`);
 
   // Send in background (non-blocking)
   setImmediate(async () => {
@@ -389,13 +404,13 @@ const sendBulkEmail = async (recipients, subject, message) => {
       }
     }
 
-    logger.info(`✓ Resend bulk email completed: ${successful} successful, ${failed} failed`);
+    logger.info(`✓ Brevo bulk email completed: ${successful} successful, ${failed} failed`);
   });
 
   return { 
     total: totalRecipients, 
     status: 'processing',
-    message: 'Emails are being sent via Resend in the background'
+    message: 'Emails are being sent via Brevo in the background'
   };
 };
 
