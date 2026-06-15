@@ -1,16 +1,16 @@
 /**
  * Smart Email Service Router
- * Automatically uses Resend on production (Render/Vercel/Netlify) and Gmail SMTP locally
+ * Automatically uses Brevo (production) or Gmail SMTP (local)
  */
 
-// Check if we should use Resend
-const useResend = 
-  process.env.USE_RESEND === 'true' || 
-  (process.env.NODE_ENV === 'production' && process.env.RESEND_API_KEY);
+// Check if we should use Brevo (300 emails/day free, works everywhere)
+const useBrevo = 
+  process.env.USE_BREVO === 'true' || 
+  (process.env.NODE_ENV === 'production' && process.env.BREVO_SMTP_KEY);
 
-if (useResend && process.env.RESEND_API_KEY) {
-  console.log('📧 Using Resend email service (Works on all platforms)');
-  module.exports = require('./email.resend');
+if (useBrevo && process.env.BREVO_SMTP_KEY) {
+  console.log('📧 Using Brevo email service (300/day FREE, works on all platforms)');
+  module.exports = require('./email.resend'); // File renamed to use Brevo
 } else {
   console.log('📧 Using Gmail SMTP email service (Local development only)');
   module.exports = require('./email.service');
