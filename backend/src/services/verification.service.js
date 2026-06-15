@@ -1,5 +1,5 @@
 const { User } = require('../models');
-const { sendVerificationEmail } = require('../services/email');
+const { sendVerificationEmail } = require('../services/email.service');
 const { generateToken, hashToken } = require('../utils/security');
 const logger = require('../utils/logger');
 
