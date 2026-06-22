@@ -85,24 +85,18 @@ const envSchema = Joi.object({
     .description('Cloudinary API secret'),
   
   // Email Configuration (Optional)
-  EMAIL_HOST: Joi.string()
+  // Using SendGrid API instead of SMTP to work with Render
+  SENDGRID_API_KEY: Joi.string()
     .optional()
-    .description('SMTP host'),
-  EMAIL_PORT: Joi.number()
-    .port()
-    .optional()
-    .description('SMTP port'),
-  EMAIL_USER: Joi.string()
-    .email()
-    .optional()
-    .description('SMTP user email'),
-  EMAIL_PASSWORD: Joi.string()
-    .optional()
-    .description('SMTP password'),
+    .description('SendGrid API key'),
   EMAIL_FROM: Joi.string()
     .email()
     .optional()
     .description('Email from address'),
+  EMAIL_REPLY_TO: Joi.string()
+    .email()
+    .optional()
+    .description('Email reply-to address'),
   
   // CORS Configuration
   ALLOWED_ORIGINS: Joi.string()
@@ -230,11 +224,9 @@ const config = {
   },
   
   email: {
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT, 10) || 587,
-    user: process.env.EMAIL_USER,
-    password: process.env.EMAIL_PASSWORD,
-    from: process.env.EMAIL_FROM 
+    sendgridKey: process.env.SENDGRID_API_KEY,
+    from: process.env.EMAIL_FROM,
+    replyTo: process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM
   },
   
   cors: {
@@ -268,7 +260,7 @@ const config = {
   features: {
     oauth: !!(process.env.GOOGLE_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID),
     fileUpload: !!(process.env.CLOUDINARY_CLOUD_NAME),
-    email: !!(process.env.EMAIL_HOST)
+    email: !!(process.env.SENDGRID_API_KEY)
   }
 };
 
