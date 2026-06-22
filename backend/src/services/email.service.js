@@ -1,77 +1,61 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const config = require('../config/env.config');
 const { logger } = require('../middleware/errorHandler.middleware');
 
 /**
  * Email Notification Service
- * Handles all email communications
+ * Handles all email communications via SendGrid API
  */
 
-// Create reusable transporter
-let transporter = null;
-
-const createTransporter = () => {
-  if (!config.features.email) {
-    logger.warn('Email service not configured. Set EMAIL_HOST in environment variables.');
-    return null;
-  }
-
-  return nodemailer.createTransport({
-    host: config.email.host,
-    port: config.email.port,
-    secure: config.email.port === 587, 
-    auth: {
-      user: config.email.user,
-      pass: config.email.password,
-    },
-  });
-};
-
-// Initialize transporter
-if (config.features.email) {
-  transporter = createTransporter();
-  
-  // Verify connection
-  transporter.verify((error, success) => {
-    if (error) {
-      logger.error('Email service initialization failed:', error);
-    } else {
-      logger.info('✓ Email service ready');
-    }
-  });
+// Initialize SendGrid API
+if (config.features.email && config.email.sendgridKey) {
+  sgMail.setApiKey(config.email.sendgridKey);
+  logger.info('✓ SendGrid email service initialized');
+} else if (config.features.email) {
+  logger.warn('Email service not configured. Set SENDGRID_API_KEY in environment variables.');
 }
 
 /**
- * Send email
+ * Send email via SendGrid
  * @param {Object} options - Email options
  * @returns {Promise}
  */
 const sendEmail = async (options) => {
-  if (!transporter) {
+  if (!config.features.email || !config.email.sendgridKey) {
     logger.warn('Email not sent - service not configured');
     return { success: false, message: 'Email service not configured' };
   }
 
   try {
-    const mailOptions = {
-      from: `'TalentBridge' <${config.email.from}>`,
+    const msg = {
       to: options.to,
+      from: config.email.from,
       subject: options.subject,
       text: options.text,
       html: options.html,
+      replyTo: config.email.replyTo || config.email.from,
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const response = await sgMail.send(msg);
     
-    logger.info('Email sent:', {
-      messageId: info.messageId,
+    logger.info('Email sent via SendGrid:', {
+      messageId: response[0].headers['x-message-id'],
+      to: options.to,
+      subject: options.subject,
+      status: response[0].statusCode
+    });
+
+    return { 
+      success: true, 
+      messageId: response[0].headers['x-message-id'],
+      statusCode: response[0].statusCode
+    };
+  } catch (error) {
+    logger.error('Failed to send email:', {
+      error: error.message,
       to: options.to,
       subject: options.subject
     });
-
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error('Failed to send email:', error);
     throw error;
   }
 };
