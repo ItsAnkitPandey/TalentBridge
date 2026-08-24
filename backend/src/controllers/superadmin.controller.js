@@ -163,7 +163,10 @@ exports.updateAdminStatus = async (req, res, next) => {
 // @access  Private (Super Admin)
 exports.deleteAdmin = async (req, res, next) => {
   try {
+    logger.info(`Delete admin attempt by: ${req.user.email}, user_type: ${req.user.user_type}`);
+    
     if (!isSuperAdmin(req.user)) {
+      logger.warn(`Non-super admin tried to delete admin: ${req.user.email}`);
       return res.status(403).json({
         success: false,
         message: 'Access denied. Only super admin can delete admins.'
@@ -172,8 +175,8 @@ exports.deleteAdmin = async (req, res, next) => {
 
     const { id } = req.params;
 
-    // Prevent super admin from deleting themselves
-    if (id === req.user.id) {
+    // Prevent super admin from deleting themselves (fix type comparison)
+    if (parseInt(id) === req.user.id) {
       return res.status(400).json({
         success: false,
         message: 'Cannot delete your own admin account'
@@ -182,6 +185,7 @@ exports.deleteAdmin = async (req, res, next) => {
 
     const admin = await User.findByPk(id);
     if (!admin || admin.user_type !== 'admin') {
+      logger.warn(`Admin not found or not an admin: ${id}`);
       return res.status(404).json({
         success: false,
         message: 'Admin not found'
@@ -216,6 +220,8 @@ exports.deleteAdmin = async (req, res, next) => {
 exports.checkSuperAdmin = async (req, res, next) => {
   try {
     const isSuper = isSuperAdmin(req.user);
+    
+    logger.info(`Super admin check: ${req.user.email}, is super: ${isSuper}, user_type: ${req.user.user_type}, expected: ${SUPER_ADMIN_EMAIL}`);
     
     res.status(200).json({
       success: true,
