@@ -85,18 +85,24 @@ const envSchema = Joi.object({
     .description('Cloudinary API secret'),
   
   // Email Configuration (Optional)
-  // Using SendGrid API instead of SMTP to work with Render
-  SENDGRID_API_KEY: Joi.string()
+  EMAIL_HOST: Joi.string()
     .optional()
-    .description('SendGrid API key'),
+    .description('SMTP host'),
+  EMAIL_PORT: Joi.number()
+    .port()
+    .optional()
+    .description('SMTP port'),
+  EMAIL_USER: Joi.string()
+    .email()
+    .optional()
+    .description('SMTP user email'),
+  EMAIL_PASSWORD: Joi.string()
+    .optional()
+    .description('SMTP password'),
   EMAIL_FROM: Joi.string()
     .email()
     .optional()
     .description('Email from address'),
-  EMAIL_REPLY_TO: Joi.string()
-    .email()
-    .optional()
-    .description('Email reply-to address'),
   
   // CORS Configuration
   ALLOWED_ORIGINS: Joi.string()
@@ -178,8 +184,8 @@ function validateEnv() {
  * Centralized configuration with validated values
  */
 const config = {
-  env: process.env.NODE_ENV ,
-  port: parseInt(process.env.PORT, 10),
+  env: process.env.NODE_ENV || 'development',
+  port: parseInt(process.env.PORT, 10) || 5000,
   
   database: {
     host: process.env.DB_HOST,
@@ -224,9 +230,11 @@ const config = {
   },
   
   email: {
-    sendgridKey: process.env.SENDGRID_API_KEY,
-    from: process.env.EMAIL_FROM,
-    replyTo: process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT, 10) || 587,
+    user: process.env.EMAIL_USER,
+    password: process.env.EMAIL_PASSWORD,
+    from: process.env.EMAIL_FROM 
   },
   
   cors: {
@@ -245,7 +253,7 @@ const config = {
   },
   
   session: {
-    secret: process.env.SESSION_SECRET
+    secret: process.env.SESSION_SECRET || 'default-session-secret-change-in-production'
   },
   
   logging: {
@@ -260,7 +268,7 @@ const config = {
   features: {
     oauth: !!(process.env.GOOGLE_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID),
     fileUpload: !!(process.env.CLOUDINARY_CLOUD_NAME),
-    email: !!(process.env.SENDGRID_API_KEY)
+    email: !!(process.env.EMAIL_HOST)
   }
 };
 
