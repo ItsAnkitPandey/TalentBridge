@@ -103,6 +103,42 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError('Your token has expired. Please log in again.', 401);
 
+// Handle Sequelize database errors
+const handleSequelizeDatabaseError = (err) => {
+  // Handle specific PostgreSQL error codes
+  if (err.original?.code === '22P02') {
+    // Invalid input syntax for type
+    const match = err.message.match(/invalid input syntax for type (\w+): "(.+?)"/i);
+    if (match) {
+      const [, type, value] = match;
+      return new AppError(`Invalid value "${value}" for ${type}. Please provide a valid ${type}.`, 400);
+    }
+  }
+  
+  if (err.original?.code === '23505') {
+    // Unique constraint violation
+    const match = err.message.match(/Key \((.+?)\)=\((.+?)\) already exists/);
+    if (match) {
+      const [, field, value] = match;
+      return new AppError(`${field} "${value}" is already taken.`, 400);
+    }
+  }
+  
+  return new AppError('Database error occurred. Please check your input and try again.', 400);
+};
+
+const handleSequelizeValidationError = (err) => {
+  const errors = err.errors.map(e => e.message);
+  const message = `Validation failed. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
+const handleSequelizeUniqueConstraintError = (err) => {
+  const field = Object.keys(err.fields)[0];
+  const message = `${field} already exists. Please use a different value.`;
+  return new AppError(message, 400);
+};
+
 // Send error response in development
 const sendErrorDev = (err, req, res) => {
   logger.error('Error:', {
@@ -181,8 +217,24 @@ const errorHandler = (err, req, res, next) => {
     if (err.name === 'ValidationError') error = handleValidationErrorDB(error);
     if (err.name === 'JsonWebTokenError') error = handleJWTError();
     if (err.name === 'TokenExpiredError') error = handleJWTExpiredError();
+    
+    // Handle Sequelize errors
+    if (err.name === 'SequelizeDatabaseError') error = handleSequelizeDatabaseError(error);
+    if (err.name === 'SequelizeValidationError') error = handleSequelizeValidationError(error);
+    if (err.name === 'SequelizeUniqueConstraintError') error = handleSequelizeUniqueConstraintError(error);
 
     sendErrorProd(error, req, res);
+  } else {
+    // Default to development mode if NODE_ENV not set
+    let error = { ...err };
+    error.message = err.message;
+
+    // Handle Sequelize errors in development too
+    if (err.name === 'SequelizeDatabaseError') error = handleSequelizeDatabaseError(error);
+    if (err.name === 'SequelizeValidationError') error = handleSequelizeValidationError(error);
+    if (err.name === 'SequelizeUniqueConstraintError') error = handleSequelizeUniqueConstraintError(error);
+
+    sendErrorDev(error, req, res);
   }
 };
 
