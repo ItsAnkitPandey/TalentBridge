@@ -185,6 +185,10 @@ async function startServer() {
     
   } catch (error) {
     logger.error('✗ Failed to start server:', error);
+    console.error('✗ Failed to start server:', error.message);
+    if (error.original?.message) {
+      console.error('Database error:', error.original.message);
+    }
     process.exit(1);
   }
 }
