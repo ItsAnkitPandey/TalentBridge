@@ -544,6 +544,8 @@ exports.sendBulkEmailToUsers = async (req, res, next) => {
     const { recipients, subject, message } = req.body;
 
     // Validate input
+    console.log("inside bul mail"+ recipients, subject, message);
+    
     if (!recipients || !subject || !message) {
       return res.status(400).json({
         success: false,
@@ -581,6 +583,7 @@ exports.sendBulkEmailToUsers = async (req, res, next) => {
     }
 
     // Send bulk email
+    console.log("users to send mail"+ users.length);
     const result = await sendBulkEmail(users, subject, message);
 
     logger.info(`Admin sent bulk email to ${users.length} users: ${result.successful} successful, ${result.failed} failed`);
