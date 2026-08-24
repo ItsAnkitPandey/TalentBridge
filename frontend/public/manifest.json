@@ -1,0 +1,16 @@
+{
+  "short_name": "TalentBridge",
+  "name": "TalentBridge - Professional Referral Network",
+  "description": "Connecting Talent Through Trust",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff"
+}
