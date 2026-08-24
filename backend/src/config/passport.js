@@ -1,7 +1,8 @@
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+// OAuth strategies - DISABLED (will be re-enabled later)
+// const GoogleStrategy = require('passport-google-oauth20').Strategy;
+// const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const { User } = require('../models');
 
 module.exports = (passport) => {
@@ -28,6 +29,8 @@ module.exports = (passport) => {
     })
   );
 
+  // OAuth Strategies - DISABLED (will be re-enabled later)
+  /*
   // Google OAuth Strategy
   passport.use(
     new GoogleStrategy(
@@ -122,4 +125,5 @@ module.exports = (passport) => {
       }
     )
   );
+  */
 };
