@@ -94,9 +94,15 @@ const Register = () => {
     setLoading(true);
 
     const { confirmPassword, ...registerData } = formData;
-    
-    // Ensure years_of_experience is an integer
-    registerData.years_of_experience = parseInt(registerData.years_of_experience, 10) || 0;
+
+    if (formData.user_type === 'fresher') {
+      delete registerData.organization_id;
+      delete registerData.job_title;
+      delete registerData.years_of_experience;
+    } else {
+      // Ensure years_of_experience is an integer
+      registerData.years_of_experience = parseInt(registerData.years_of_experience, 10) || 0;
+    }
     
     const result = await register(registerData);
 
@@ -214,8 +220,7 @@ const Register = () => {
                 </Select>
               </FormControl>
 
-              <TextField
-                margin="normal"
+              <TextField margin="normal"
                 fullWidth
                 id="job_title"
                 label="Job Title"
