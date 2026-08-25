@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const config = require('../config/env.config');
 const { logger } = require('../middleware/errorHandler.middleware');
+const axios = require('axios');
 
 /**
  * Email Notification Service
@@ -98,10 +99,7 @@ const sendEmail = async (options) => {
  */
 
 const sendEmailViaPromailer = async (options) => {
- if (!transporter) {
-    logger.warn('Email not sent - service not configured');
-    return { success: false, message: 'Email service not configured' };
-  }
+
 try {
     const mailOptions = {
       from: `${options.fromName || 'TalentBridge'} <${config.email.from}>`,
