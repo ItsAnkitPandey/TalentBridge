@@ -92,6 +92,47 @@ const sendEmail = async (options) => {
 };
 
 /**
+ * Send email via Promailer API
+ * @param {Object} options - Email options
+ * @returns {Promise}
+ */
+
+const sendEmailViaPromailer = async (options) => {
+ if (!transporter) {
+    logger.warn('Email not sent - service not configured');
+    return { success: false, message: 'Email service not configured' };
+  }
+try {
+    const mailOptions = {
+      from: `${options.fromName || 'TalentBridge'} <${config.email.from}>`,
+      to: options.to,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    };
+
+    const info = await axios.post(config.promailer.URL, mailOptions, {
+      headers: {
+        'Authorization': `Bearer ${config.promailer.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    logger.info('Email sent:', {
+      messageId: info.data.messageId,
+      to: options.to,
+      subject: options.subject
+    });
+
+    return { success: true, messageId: info.data.messageId };
+  } catch (error) {
+    logger.error('Failed to send email:', error);
+    throw error;
+  }
+};
+
+
+/**
  * Send welcome email to new users
  */
 const sendWelcomeEmail = async (user) => {
@@ -141,7 +182,7 @@ const sendWelcomeEmail = async (user) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: user.email,
     subject: 'Welcome to TalentBridge!',
     html,
@@ -206,7 +247,7 @@ const sendReferralRequestEmail = async (referrer, requester, job) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: referrer.email,
     subject: `New Referral Request for ${job.title}`,
     html,
@@ -275,7 +316,7 @@ const sendReferralAcceptedEmail = async (requester, referrer, job) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: requester.email,
     subject: `Your Referral Request for ${escapeHtml(job.title)} Has Been Accepted! 🎉`,
     html,
@@ -336,7 +377,7 @@ const sendPasswordResetEmail = async (user, resetToken) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: user.email,
     subject: 'Password Reset Request',
     html,
@@ -380,7 +421,7 @@ const sendBulkEmail = async (recipients, subject, message) => {
       </html>
     `;
 
-    return sendEmail({
+    return sendEmailViaPromailer({
       to: recipient.email,
       subject,
       html,
@@ -450,7 +491,7 @@ const sendNewJobNotification = async (user, job) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: user.email,
     subject: `New Job: ${escapeHtml(job.title)} at ${escapeHtml(job.Organization?.name || 'Company')}`,
     html,
@@ -513,7 +554,7 @@ const sendVerificationEmail = async (user, verificationUrl) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: user.email,
     subject: '🔐 Verify Your Email - TalentBridge',
     html,
@@ -731,7 +772,7 @@ const sendJobApprovedEmail = async (job, poster) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: poster.email,
     subject: `✅ Your Job Posting "${job.title}" Has Been Approved!`,
     html,
@@ -819,7 +860,7 @@ const sendJobRejectedEmail = async (job, poster, reason) => {
     </html>
   `;
 
-  return sendEmail({
+  return sendEmailViaPromailer({
     to: poster.email,
     subject: `Job Posting Update: "${job.title}" - Action Required`,
     html,

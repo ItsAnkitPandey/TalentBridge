@@ -269,8 +269,20 @@ const config = {
     oauth: !!(process.env.GOOGLE_CLIENT_ID || process.env.LINKEDIN_CLIENT_ID),
     fileUpload: !!(process.env.CLOUDINARY_CLOUD_NAME),
     email: !!(process.env.EMAIL_HOST)
+  },
+
+  //Promailer
+
+  promailer: {
+    apiKey: process.env.PROMAILER_API_KEY,
+    URL: process.env.PROMAILER_API_URL  
   }
 };
+
+
+
+
+
 
 // Validate on module load
 try {
