@@ -73,6 +73,8 @@ const Referral = sequelize.define('Referral', {
   tableName: 'referrals',
   timestamps: true,
   underscored: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   indexes: [
     { fields: ['requester_id'] },
     { fields: ['referrer_id'] },
