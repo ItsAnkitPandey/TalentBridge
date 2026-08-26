@@ -32,7 +32,7 @@ const ResendVerification = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/resend-verification`,
+        `${process.env.REACT_APP_API_URL}/auth/resend-verification`,
         { email }
       );
 
