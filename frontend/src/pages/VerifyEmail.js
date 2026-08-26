@@ -27,7 +27,7 @@ const VerifyEmail = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/auth/verify-email/${token}`
+        `${process.env.REACT_APP_API_URL}/auth/verify-email/${token}`
       );
 
       if (response.data.success) {
