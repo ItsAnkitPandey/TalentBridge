@@ -26,12 +26,15 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    console.log(originalRequest);
+    
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        if(originalRequest.url !== '/auth/login') {
+          const refreshToken = localStorage.getItem('refreshToken');
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refreshToken
         });
@@ -41,10 +44,16 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${token}`;
 
         return api(originalRequest);
+        }else{
+          console.log("Do Nothing");
+          
+        }
+        
+        
       } catch (refreshError) {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        // window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
