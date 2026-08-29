@@ -23,6 +23,7 @@ const PostJob = () => {
   const [organizations, setOrganizations] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
+    external_job_id: '',
     description: '',
     organization_id: '',
     job_type: 'full-time',
@@ -123,6 +124,17 @@ const PostJob = () => {
             value={formData.title}
             onChange={handleChange}
             margin="normal"
+          />
+
+          <TextField
+            fullWidth
+            label="Job ID / Requisition Code (Optional)"
+            name="external_job_id"
+            value={formData.external_job_id}
+            onChange={handleChange}
+            margin="normal"
+            placeholder="e.g. REQ-2026-9812, 10984, or Workday Job Code for easy candidate referral"
+            helperText="Company internal job ID or requisition code to help employees find and submit the referral in HR portal"
           />
 
           <FormControl fullWidth margin="normal" required>
