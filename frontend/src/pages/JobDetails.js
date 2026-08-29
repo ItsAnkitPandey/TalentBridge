@@ -119,6 +119,9 @@ const JobDetails = () => {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+          {job.external_job_id && (
+            <Chip label={`Job ID: ${job.external_job_id}`} color="secondary" variant="outlined" sx={{ fontWeight: 'bold' }} />
+          )}
           <Chip label={formatExperienceLevel(job.experience_level)} color="primary" />
           <Chip label={job.remote_type} />
           <Chip label={`${job.views_count} views`} variant="outlined" />
