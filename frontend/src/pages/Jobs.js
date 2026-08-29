@@ -286,6 +286,9 @@ const Jobs = () => {
                             {job.description?.substring(0, 150)}...
                           </Typography>
                           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            {job.external_job_id && (
+                              <Chip label={`ID: ${job.external_job_id}`} size="small" color="secondary" variant="outlined" sx={{ fontWeight: 'medium' }} />
+                            )}
                             <Chip label={formatExperienceLevel(job.experience_level)} size="small" color="primary" />
                             <Chip label={job.job_type} size="small" color="secondary" />
                             <Chip label={job.remote_type} size="small" color="default" />
