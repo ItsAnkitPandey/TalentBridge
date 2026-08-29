@@ -198,9 +198,11 @@ exports.getProvidedReferrals = async (req, res, next) => {
 // @access  Private
 exports.acceptReferralRequest = async (req, res, next) => {
   try {
-    const { response_message, referrer_notes } = req.body;
+    const { response_message, referrer_notes, internal_referral_id, proof_url, proof_notes } = req.body;
 
-    const referral = await Referral.findByPk(req.params.id);
+    const referral = await Referral.findByPk(req.params.id, {
+      include: [{ model: Job, as: 'job' }]
+    });
 
     if (!referral) {
       return res.status(404).json({
@@ -216,13 +218,28 @@ exports.acceptReferralRequest = async (req, res, next) => {
       });
     }
 
+    // Verify referrer belongs to the job's organization
+    if (!req.user.organization_id || req.user.organization_id !== referral.job.organization_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only accept referral requests for jobs in your organization'
+      });
+    }
+
+    const hasProof = internal_referral_id || proof_url || proof_notes;
+    const newStatus = hasProof ? 'submitted_to_hr' : 'accepted';
+
     // Update referral
     await referral.update({
       referrer_id: req.user.id,
-      status: 'accepted',
+      status: newStatus,
       response_message,
       referrer_notes,
-      accepted_at: new Date()
+      internal_referral_id: internal_referral_id || null,
+      proof_url: proof_url || null,
+      proof_notes: proof_notes || null,
+      accepted_at: new Date(),
+      submitted_at: hasProof ? new Date() : null
     });
 
     // Update user referral stats
@@ -279,7 +296,9 @@ exports.rejectReferralRequest = async (req, res, next) => {
   try {
     const { response_message } = req.body;
 
-    const referral = await Referral.findByPk(req.params.id);
+    const referral = await Referral.findByPk(req.params.id, {
+      include: [{ model: Job, as: 'job' }]
+    });
 
     if (!referral) {
       return res.status(404).json({
@@ -292,6 +311,14 @@ exports.rejectReferralRequest = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'This referral request has already been processed'
+      });
+    }
+
+    // Verify referrer belongs to the job's organization
+    if (!req.user.organization_id || req.user.organization_id !== referral.job.organization_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only reject referral requests for jobs in your organization'
       });
     }
 
@@ -352,6 +379,156 @@ exports.completeReferral = async (req, res, next) => {
     });
   } catch (error) {
     logger.error('Complete referral error:', error);
+    next(error);
+  }
+};
+
+// @desc    Submit HR Referral Proof (Workday/Portal Referral ID or proof link)
+// @route   PUT /api/referrals/:id/submit-hr
+// @access  Private
+exports.submitReferralToHr = async (req, res, next) => {
+  try {
+    const { internal_referral_id, proof_url, proof_notes } = req.body;
+
+    const referral = await Referral.findByPk(req.params.id);
+
+    if (!referral) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referral not found'
+      });
+    }
+
+    if (referral.referrer_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to submit proof for this referral'
+      });
+    }
+
+    await referral.update({
+      status: 'submitted_to_hr',
+      internal_referral_id: internal_referral_id || referral.internal_referral_id,
+      proof_url: proof_url || referral.proof_url,
+      proof_notes: proof_notes || referral.proof_notes,
+      submitted_at: new Date()
+    });
+
+    const updatedReferral = await Referral.findByPk(referral.id, {
+      include: [
+        {
+          model: User,
+          as: 'requester',
+          attributes: ['id', 'first_name', 'last_name', 'email', 'profile_picture']
+        },
+        {
+          model: User,
+          as: 'referrer',
+          attributes: ['id', 'first_name', 'last_name', 'profile_picture']
+        },
+        {
+          model: Job,
+          as: 'job',
+          include: [{ model: Organization, as: 'organization' }]
+        }
+      ]
+    });
+
+    logger.info(`Referral submitted to HR: ${referral.id}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Referral proof submitted successfully',
+      data: { referral: updatedReferral }
+    });
+  } catch (error) {
+    logger.error('Submit referral to HR error:', error);
+    next(error);
+  }
+};
+
+// @desc    Update referral status milestone (interviewing, completed, rejected, etc.)
+// @route   PUT /api/referrals/:id/status
+// @access  Private
+exports.updateReferralStatus = async (req, res, next) => {
+  try {
+    const { status, response_message } = req.body;
+    const validStatuses = ['accepted', 'submitted_to_hr', 'interviewing', 'completed', 'rejected', 'cancelled'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const referral = await Referral.findByPk(req.params.id);
+
+    if (!referral) {
+      return res.status(404).json({
+        success: false,
+        message: 'Referral not found'
+      });
+    }
+
+    if (referral.referrer_id !== req.user.id && referral.requester_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this referral status'
+      });
+    }
+
+    const previousStatus = referral.status;
+    const updates = { status };
+
+    if (response_message) {
+      updates.response_message = response_message;
+    }
+
+    if (status === 'completed' && previousStatus !== 'completed') {
+      updates.completed_at = new Date();
+      // Increase referrer's successful count if set by referrer
+      if (referral.referrer_id) {
+        const referrer = await User.findByPk(referral.referrer_id);
+        if (referrer) {
+          await referrer.update({
+            successful_referral_count: referrer.successful_referral_count + 1
+          });
+        }
+      }
+    }
+
+    await referral.update(updates);
+
+    const updatedReferral = await Referral.findByPk(referral.id, {
+      include: [
+        {
+          model: User,
+          as: 'requester',
+          attributes: ['id', 'first_name', 'last_name', 'email', 'profile_picture']
+        },
+        {
+          model: User,
+          as: 'referrer',
+          attributes: ['id', 'first_name', 'last_name', 'profile_picture']
+        },
+        {
+          model: Job,
+          as: 'job',
+          include: [{ model: Organization, as: 'organization' }]
+        }
+      ]
+    });
+
+    logger.info(`Referral status updated to ${status}: ${referral.id}`);
+
+    res.status(200).json({
+      success: true,
+      message: `Referral status updated to ${status}`,
+      data: { referral: updatedReferral }
+    });
+  } catch (error) {
+    logger.error('Update referral status error:', error);
     next(error);
   }
 };
