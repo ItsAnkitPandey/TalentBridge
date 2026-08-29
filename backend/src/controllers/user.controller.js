@@ -1,5 +1,12 @@
 const { User, Organization } = require('../models');
 const logger = require('../utils/logger');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // @desc    Get user profile
 // @route   GET /api/users/:id
@@ -29,6 +36,59 @@ exports.getUserProfile = async (req, res, next) => {
     });
   } catch (error) {
     logger.error('Get user profile error:', error);
+    next(error);
+  }
+};
+
+// @desc    Upload profile picture
+// @route   POST /api/users/profile/picture
+// @access  Private
+exports.uploadProfilePicture = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select an image to upload'
+      });
+    }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(503).json({
+        success: false,
+        message: 'Profile picture uploads are not configured'
+      });
+    }
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'talentbridge/profile-pictures',
+          resource_type: 'image',
+          transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
+        },
+        (error, result) => error ? reject(error) : resolve(result)
+      );
+
+      uploadStream.end(req.file.buffer);
+    });
+
+    await req.user.update({ profile_picture: uploadResult.secure_url });
+
+    const updatedUser = await User.findByPk(req.user.id, {
+      include: [{
+        model: Organization,
+        as: 'organization',
+        attributes: ['id', 'name', 'logo']
+      }]
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture uploaded successfully',
+      data: { user: updatedUser }
+    });
+  } catch (error) {
+    logger.error('Upload profile picture error:', error);
     next(error);
   }
 };
