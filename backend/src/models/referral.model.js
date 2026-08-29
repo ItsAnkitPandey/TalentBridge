@@ -32,8 +32,24 @@ const Referral = sequelize.define('Referral', {
     }
   },
   status: {
-    type: DataTypes.ENUM('requested', 'accepted', 'rejected', 'completed', 'cancelled'),
+    type: DataTypes.ENUM('requested', 'accepted', 'submitted_to_hr', 'interviewing', 'rejected', 'completed', 'cancelled'),
     defaultValue: 'requested'
+  },
+  internal_referral_id: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  proof_url: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  proof_notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  submitted_at: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
   message: {
     type: DataTypes.TEXT,
