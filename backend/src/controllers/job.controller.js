@@ -30,7 +30,8 @@ exports.getAllJobs = async (req, res, next) => {
     if (search) {
       where[Op.or] = [
         { title: { [Op.iLike]: `%${search}%` } },
-        { description: { [Op.iLike]: `%${search}%` } }
+        { description: { [Op.iLike]: `%${search}%` } },
+        { external_job_id: { [Op.iLike]: `%${search}%` } }
       ];
     }
 
