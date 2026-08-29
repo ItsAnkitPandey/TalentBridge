@@ -80,12 +80,15 @@ export const referralsAPI = {
   getProvided: () => api.get('/referrals/provided'),
   accept: (id, data) => api.put(`/referrals/${id}/accept`, data),
   reject: (id, data) => api.put(`/referrals/${id}/reject`, data),
+  submitToHr: (id, data) => api.put(`/referrals/${id}/submit-hr`, data),
+  updateStatus: (id, data) => api.put(`/referrals/${id}/status`, data),
   complete: (id) => api.put(`/referrals/${id}/complete`)
 };
 
 // Users API
 export const usersAPI = {
   getProfile: (id) => api.get(`/users/${id}`),
+  updateProfile: (data) => api.put('/users/profile', data),
   uploadProfilePicture: (file) => {
     const formData = new FormData();
     formData.append('profile_picture', file);
@@ -93,7 +96,6 @@ export const usersAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  updateProfile: (data) => api.put('/users/profile', data),
   search: (params) => api.get('/users/search', { params })
 };
 
