@@ -37,6 +37,7 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -96,6 +97,27 @@ const Profile = () => {
     setError('');
   };
 
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+
+    if (!file) return;
+
+    setError('');
+    setSuccess('');
+    setUploadingPhoto(true);
+
+    try {
+      const response = await usersAPI.uploadProfilePicture(file);
+      updateUser(response.data.data.user);
+      setSuccess('Profile picture uploaded successfully!');
+    } catch (uploadError) {
+      setError(uploadError.response?.data?.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ p: 4 }}>
@@ -126,9 +148,10 @@ const Profile = () => {
               component="label"
               startIcon={<PhotoCamera />}
               size="small"
+              disabled={uploadingPhoto}
             >
-              Upload Photo
-              <input hidden accept="image/*" type="file" />
+              {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+              <input hidden accept="image/jpeg,image/png,image/webp" type="file" onChange={handlePhotoChange} />
             </Button>
           )}
         </Box>
