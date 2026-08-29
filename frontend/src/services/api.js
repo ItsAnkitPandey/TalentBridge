@@ -86,6 +86,13 @@ export const referralsAPI = {
 // Users API
 export const usersAPI = {
   getProfile: (id) => api.get(`/users/${id}`),
+  uploadProfilePicture: (file) => {
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+    return api.post('/users/profile/picture', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   updateProfile: (data) => api.put('/users/profile', data),
   search: (params) => api.get('/users/search', { params })
 };
