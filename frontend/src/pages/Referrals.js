@@ -29,6 +29,9 @@ const Referrals = () => {
   const [actionType, setActionType] = useState(''); // 'accept' or 'reject'
   const [responseMessage, setResponseMessage] = useState('');
   const [referrerNotes, setReferrerNotes] = useState('');
+  const [internalReferralId, setInternalReferralId] = useState('');
+  const [proofUrl, setProofUrl] = useState('');
+  const [proofNotes, setProofNotes] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -55,6 +58,9 @@ const Referrals = () => {
     setDialogOpen(true);
     setResponseMessage('');
     setReferrerNotes('');
+    setInternalReferralId('');
+    setProofUrl('');
+    setProofNotes('');
   };
 
   const handleCloseDialog = () => {
@@ -63,6 +69,9 @@ const Referrals = () => {
     setActionType('');
     setResponseMessage('');
     setReferrerNotes('');
+    setInternalReferralId('');
+    setProofUrl('');
+    setProofNotes('');
   };
 
   const handleAction = async () => {
@@ -71,7 +80,10 @@ const Referrals = () => {
       if (actionType === 'accept') {
         await referralsAPI.accept(selectedReferral.id, {
           response_message: responseMessage,
-          referrer_notes: referrerNotes
+          referrer_notes: referrerNotes,
+          internal_referral_id: internalReferralId,
+          proof_url: proofUrl,
+          proof_notes: proofNotes
         });
         setSuccess('Referral request accepted successfully!');
       } else {
@@ -235,16 +247,45 @@ const Referrals = () => {
               : "Optionally provide a reason for declining..."}
           />
           {actionType === 'accept' && (
-            <TextField
-              fullWidth
-              label="Internal Notes (Private)"
-              multiline
-              rows={2}
-              margin="normal"
-              value={referrerNotes}
-              onChange={(e) => setReferrerNotes(e.target.value)}
-              placeholder="Add any private notes for your records..."
-            />
+            <>
+              <TextField
+                fullWidth
+                label="Internal Referral ID / Workday Code (Optional)"
+                margin="normal"
+                value={internalReferralId}
+                onChange={(e) => setInternalReferralId(e.target.value)}
+                placeholder="e.g., REF-98421 or Workday Confirmation ID"
+                helperText="Provide if you have already submitted them in your company portal"
+              />
+              <TextField
+                fullWidth
+                label="Proof URL / Screenshot Link (Optional)"
+                margin="normal"
+                value={proofUrl}
+                onChange={(e) => setProofUrl(e.target.value)}
+                placeholder="e.g., https://drive.google.com/... or confirmation link"
+              />
+              <TextField
+                fullWidth
+                label="Submission / Proof Notes (Optional)"
+                multiline
+                rows={2}
+                margin="normal"
+                value={proofNotes}
+                onChange={(e) => setProofNotes(e.target.value)}
+                placeholder="e.g., Submitted via Workday portal on 29 Aug"
+              />
+              <TextField
+                fullWidth
+                label="Internal Notes (Private)"
+                multiline
+                rows={2}
+                margin="normal"
+                value={referrerNotes}
+                onChange={(e) => setReferrerNotes(e.target.value)}
+                placeholder="Add any private notes for your records..."
+              />
+            </>
           )}
         </DialogContent>
         <DialogActions>
