@@ -21,6 +21,8 @@ router.get('/my-requests', protect, referralController.getMyReferralRequests);
 router.get('/provided', protect, referralController.getProvidedReferrals);
 router.put('/:id/accept', protect, requireEmailVerification, canProvideReferrals, referralController.acceptReferralRequest);
 router.put('/:id/reject', protect, requireEmailVerification, canProvideReferrals, referralController.rejectReferralRequest);
+router.put('/:id/submit-hr', protect, requireEmailVerification, canProvideReferrals, referralController.submitReferralToHr);
+router.put('/:id/status', protect, requireEmailVerification, referralController.updateReferralStatus);
 router.put('/:id/complete', protect, requireEmailVerification, referralController.completeReferral);
 
 module.exports = router;
